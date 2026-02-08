@@ -1,4 +1,5 @@
 torch==2.10.0
+dotenv==0.9.9
 pandas==3.0.0
 mlflow==3.9.0
 pyarrow==18.1.0
