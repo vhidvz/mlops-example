@@ -1,6 +1,6 @@
 # MLOps Example
 
-Python version management
+Python Version Management
 
 ```sh
 # https://github.com/pyenv/pyenv
