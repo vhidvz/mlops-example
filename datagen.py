@@ -12,7 +12,6 @@ This script:
 Run this script once to populate the table, then run the training script.
 """
 import os
-import sys
 
 import numpy as np
 import polars as pl
@@ -24,7 +23,7 @@ from sklearn.datasets import make_classification
 
 # ========================= CONFIGURATION =========================
 
-def load_delta_table():
+def lakefs_config():
   LAKEFS_STORAGE_REPO = os.getenv('LAKEFS_STORAGE_REPO')
   LAKEFS_STORAGE_TABLE = os.getenv('LAKEFS_STORAGE_TABLE')
   LAKEFS_STORAGE_BRANCH = os.getenv('LAKEFS_STORAGE_BRANCH')
@@ -47,17 +46,10 @@ def load_delta_table():
     "access_key_id": LAKEFS_CREDENTIALS_ACCESS_KEY_ID,
     "secret_access_key": LAKEFS_CREDENTIALS_SECRET_ACCESS_KEY,
   }
-  
-  try:
-    DELTA_URI = f"s3://{LAKEFS_STORAGE_REPO}/{LAKEFS_STORAGE_BRANCH}/{LAKEFS_STORAGE_TABLE}"
-    dt = DeltaTable(DELTA_URI, storage_options=STORAGE_OPTIONS)
-    print(f"Successfully opened Delta table: {DELTA_URI}")
-    print(f"Version: {dt.version()}")
-  except Exception as e:
-    print(f"Failed to open Delta table: {e}")
-    sys.exit(1)
-    
-  return dt, STORAGE_OPTIONS, DELTA_URI
+
+  DELTA_URI = f"s3://{LAKEFS_STORAGE_REPO}/{LAKEFS_STORAGE_BRANCH}/{LAKEFS_STORAGE_TABLE}"
+
+  return STORAGE_OPTIONS, DELTA_URI
 
 # ========================= GENERATE SAMPLE DATA =========================
 
@@ -76,26 +68,30 @@ def sample_generation(n_samples = 10_000) -> pl.DataFrame:
 
     # Create DataFrame with meaningful column names
     columns = [f"num_feature_{i}" for i in range(X.shape[1])]
-    df = pl.DataFrame(X, columns=columns)
-
-    # Add one categorical feature
-    df["color"] = np.random.choice(["red", "blue", "green"], size=n_samples)
-
-    # Add target column
-    df["label"] = y
-
+    df = pl.DataFrame(X, schema=columns)
+    
+    # Add categorical feature and target using hstack (cleanest way)
+    df = df.hstack(
+        pl.DataFrame(
+            {
+                "color": np.random.choice(["red", "blue", "green"], size=n_samples),
+                "label": y,
+            }
+        )
+    )
+    
     print(f"Generated DataFrame: {df.shape[0]:,} rows × {df.shape[1]} columns")
     print("Columns:", list(df.columns))
     print("\nFirst 5 rows:")
     print(df.head())
     print("\nLabel distribution:")
-    print(df["label"].value_counts().sort_index())
+    print(df["label"].value_counts().sort("label"))
     
     return df
 
 # ========================= WRITE TO DELTA LAKE =========================
 
-def write_deltalake(df: pl.DataFrame, storage_options: str, delta_uri: str):
+def write_deltalake(df: pl.DataFrame, storage_options: dict, delta_uri: str):
     print(f"\nWriting to Delta Lake table: {delta_uri}")
     try:
         df.write_delta(
@@ -110,7 +106,7 @@ def write_deltalake(df: pl.DataFrame, storage_options: str, delta_uri: str):
 
 # ========================= VERIFICATION =========================
 
-def verification(storage_options: str, delta_uri: str):
+def verification(storage_options: dict, delta_uri: str):
     try:
         dt = DeltaTable(delta_uri, storage_options=storage_options)
         print(f"\nVerification: Table version {dt.version()}")
@@ -123,3 +119,7 @@ def verification(storage_options: str, delta_uri: str):
 
 if __name__ == '__main__':
     load_dotenv()
+    df = sample_generation()
+    STORAGE_OPTIONS, DELTA_URI = lakefs_config()
+    write_deltalake(df, STORAGE_OPTIONS, DELTA_URI)
+    verification(STORAGE_OPTIONS, DELTA_URI)
