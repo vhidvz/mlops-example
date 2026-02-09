@@ -1,0 +1,8 @@
+services:
+  lakefs:
+    image: treeverse/lakefs:1.74.4
+    container_name: lakefs-quickstart
+    ports:
+      - "8000:8000"
+    command: run --quickstart
+    network_mode: host

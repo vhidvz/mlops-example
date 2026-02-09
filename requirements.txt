@@ -1,7 +1,7 @@
 torch==2.10.0
 dotenv==0.9.9
 pandas==2.1.4
-mlflow==3.9.0
+mlflow==3.2.0
 pyarrow==18.1.0
 deltalake==1.4.1
 scikit-learn==1.8.0
