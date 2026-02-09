@@ -59,9 +59,9 @@ def load_delta_table():
   LAKEFS_STORAGE_TABLE = os.getenv('LAKEFS_STORAGE_TABLE')
   LAKEFS_STORAGE_BRANCH = os.getenv('LAKEFS_STORAGE_BRANCH')
   
-  assert LAKEFS_STORAGE_REPO, 'lakefs repo is required'
-  assert LAKEFS_STORAGE_TABLE, 'lakefs table is required'
-  assert LAKEFS_STORAGE_BRANCH, 'lakefs branch is required'
+  assert LAKEFS_STORAGE_REPO, 'lakefs storage repo is required'
+  assert LAKEFS_STORAGE_TABLE, 'lakefs storage table is required'
+  assert LAKEFS_STORAGE_BRANCH, 'lakefs storage branch is required'
 
   LAKEFS_SERVER_ENDPOINT_URL = os.getenv('LAKEFS_SERVER_ENDPOINT_URL')
   LAKEFS_CREDENTIALS_ACCESS_KEY_ID = os.getenv('LAKEFS_CREDENTIALS_ACCESS_KEY_ID')
