@@ -12,6 +12,7 @@ This script:
 Run this script once to populate the table, then run the training script.
 """
 import os
+import random
 
 import numpy as np
 import polars as pl
@@ -20,6 +21,9 @@ from dotenv import load_dotenv
 from deltalake import DeltaTable
 from sklearn.datasets import make_classification
 
+RANDOM_SEED = 1234
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
 
 # ========================= CONFIGURATION =========================
 
