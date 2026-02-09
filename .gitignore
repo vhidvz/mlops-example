@@ -1,3 +1,7 @@
+best_model.pth
+preprocessor.pkl
+confusion_matrix.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

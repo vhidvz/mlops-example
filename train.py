@@ -13,6 +13,7 @@ Key features:
 """
 import os
 import sys
+import util
 import torch
 import joblib
 import mlflow
@@ -225,17 +226,23 @@ if __name__ == '__main__':
   
   # Create loaders (batch_size=None because we already batch in the iterator)
   train_dataset = DeltaStreamingDataset(
-      dataset, preprocessor, label_enc, BATCH_SIZE, is_train=True, val_split_mod=VAL_SPLIT_MOD
+      dataset, preprocessor, label_enc, BATCH_SIZE,
+      is_train=True, val_split_mod=VAL_SPLIT_MOD,
+      feature_columns=feature_columns
   )
   val_dataset = DeltaStreamingDataset(
-      dataset, preprocessor, label_enc, BATCH_SIZE, is_train=False, val_split_mod=VAL_SPLIT_MOD
+      dataset, preprocessor, label_enc, BATCH_SIZE,
+      is_train=False, val_split_mod=VAL_SPLIT_MOD,
+      feature_columns=feature_columns
   )
-
-  train_loader = DataLoader(train_dataset, batch_size=None, num_workers=0, pin_memory=True)
-  val_loader = DataLoader(val_dataset, batch_size=None, num_workers=0, pin_memory=True)
+  
+  pin_memory = torch.cuda.is_available() # or (device.type == 'cuda')
+  train_loader = DataLoader(train_dataset, batch_size=None, num_workers=0, pin_memory=pin_memory)
+  val_loader = DataLoader(val_dataset, batch_size=None, num_workers=0, pin_memory=pin_memory)
 
   # ========================= TRAINING LOOP WITH MLFLOW =========================
-
+  
+  mlflow_tracking()
   with mlflow.start_run(run_name="lakefs_delta_mlp") as run:
     # Log hyperparameters
     mlflow.log_params({
@@ -336,7 +343,11 @@ if __name__ == '__main__':
     print("Logging model and artifacts to MLflow...")
 
     # Log the trained model
-    mlflow.pytorch.log_model(model, "model")
+    mlflow.pytorch.log_model(
+      pytorch_model=model, name="model",
+      registered_model_name="MLPClassifier",
+      tags={"release.version": util.generate_calver('YYYY.MM.DD-HHMMSS')}
+    )
 
     # Confusion matrix (from the best validation pass)
     cm = confusion_matrix(all_labels_best, all_preds_best)
