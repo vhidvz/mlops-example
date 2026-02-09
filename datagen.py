@@ -16,7 +16,7 @@ import sys
 import numpy as np
 import polars as pl
 
-        from deltalake import DeltaTable
+from deltalake import DeltaTable
 from dotenv import load_dotenv
 from deltalake.writer import write_deltalake
 from sklearn.datasets import make_classification
