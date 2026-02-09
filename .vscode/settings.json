@@ -4,6 +4,7 @@
     "dotenv",
     "lakefs",
     "mlflow",
+    "numpy",
     "pyarrow",
     "pyenv",
     "scikit",

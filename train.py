@@ -1,3 +1,16 @@
+"""
+Complete, runnable Python script for streaming a Delta Lake table from LakeFS,
+preprocessing, training a PyTorch MLP (classification), and tracking with MLflow.
+
+Key features:
+- Streams data in batches using deltalake + PyArrow (never loads full dataset into RAM).
+- Simple but effective train/val split via batch index (deterministic, ~80/20).
+- Preprocessing: fits StandardScaler + OneHotEncoder on a small sample, then transforms batches.
+- PyTorch MLP for classification (assumes "label" column; works with string or int labels).
+- Full MLflow tracking: params, per-epoch metrics, final model, confusion matrix artifact.
+- Early stopping, device handling (CPU/GPU), batch size config.
+- Error handling and detailed comments.
+"""
 import os
 import sys
 import torch

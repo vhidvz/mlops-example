@@ -36,3 +36,9 @@ Docker QuickStart
 ```sh
 docker run --rm -d -p 8000:8000 treeverse/lakefs:1.74.4 run --quickstart
 ```
+
+## MLflow
+
+```sh
+docker compose --env-file docker/config/mlflow.env -f docker/docker-compose.mlf.yml up -d
+```
