@@ -13,11 +13,11 @@ Key features:
 """
 import os
 import sys
-import util
 import torch
 import joblib
 import mlflow
 
+import numpy as np
 import pandas as pd
 import torch.nn as nn
 import torch.optim as optim
@@ -28,6 +28,7 @@ from deltalake import DeltaTable
 from typing import Iterator, Tuple
 from pyarrow.dataset import Dataset
 from sklearn.compose import ColumnTransformer
+from mlflow.models.signature import infer_signature
 from torch.utils.data import IterableDataset, DataLoader
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
@@ -209,7 +210,7 @@ if __name__ == '__main__':
   preprocessor.fit(sample_df[feature_columns])
 
   # Transform sample to determine input dimension
-  sample_X = preprocessor.transform(sample_df[feature_columns])
+  sample_X = preprocessor.transform(sample_df[feature_columns]).astype(np.float32)
   input_size = sample_X.shape[1]
   print(f"Input feature size after preprocessing: {input_size}")
 
@@ -339,14 +340,34 @@ if __name__ == '__main__':
               print(f"Early stopping triggered at epoch {epoch+1}")
               break
 
+    # ========================= LOAD BEST MODEL FOR LOGGING =========================
+    print("Loading best model state dict for final logging...")
+    if os.path.exists("best_model.pth"):
+        model.load_state_dict(torch.load("best_model.pth"))
+        print("Best model loaded.")
+    else:
+        print("No best model checkpoint found; logging current model.")
+
+    # ========================= INFER SIGNATURE AND INPUT EXAMPLE =========================
+    model.eval()
+    sample_input_np = sample_X[:1].copy()  # Small real preprocessed batch
+    sample_tensor = torch.from_numpy(sample_input_np).float().to(device)
+    with torch.no_grad():
+        sample_predictions = model(sample_tensor).cpu().numpy()
+
+    signature = infer_signature(sample_input_np, sample_predictions)
+    input_example = sample_input_np
+
     # ========================= FINAL ARTIFACTS =========================
     print("Logging model and artifacts to MLflow...")
 
-    # Log the trained model
+    # Log the trained model with signature and input example (eliminates warning)
     mlflow.pytorch.log_model(
-      pytorch_model=model, name="model",
+      pytorch_model=model,
+      name="model",
+      signature=signature,
+      input_example=input_example,
       registered_model_name="MLPClassifier",
-      tags={"release.version": util.generate_calver('YYYY.MM.DD-HHMMSS')}
     )
 
     # Confusion matrix (from the best validation pass)
