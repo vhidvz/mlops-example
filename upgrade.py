@@ -7,7 +7,7 @@ from mlflow.tracking import MlflowClient
 from mlflow.artifacts import download_artifacts
 
 
-MLFLOW_METADATA_PATH='./.data/registered_model_meta'
+MLFLOW_METADATA_PATH='.data/registered_model_meta'
 MLFLOW_EXPERIMENT_NAME = "delta_lake_mlp_training"
 MLFLOW_REGISTERED_MODEL_NAME="MLPClassifier"
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
   local_path = client.download_artifacts(
     run_id=best_version.run_id, # type: ignore
     path="preprocessor.pkl",
-    dst_path='./.data',
+    dst_path='.data',
   )
   print("Preprocessor downloaded to:", local_path)
   
@@ -47,7 +47,7 @@ if __name__ == '__main__':
   model_uri = f"models:/{best_version.name}/{best_version.version}"
   local_path = download_artifacts(
     artifact_uri=model_uri,
-    dst_path='./.data/'
+    dst_path='.data/'
   )
   print("Model downloaded to:", local_path)
 
