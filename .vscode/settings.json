@@ -7,6 +7,7 @@
     "lakefs",
     "matplotlib",
     "mlflow",
+    "mlruns",
     "numpy",
     "preds",
     "pyarrow",

@@ -1,3 +1,5 @@
+mlruns/
+
 best_model.pth
 preprocessor.pkl
 confusion_matrix.png
