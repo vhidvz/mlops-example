@@ -14,11 +14,13 @@ Key features:
 import os
 import sys
 import torch
+import joblib
 import mlflow
 
 import pandas as pd
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 from dotenv import load_dotenv
 from deltalake import DeltaTable
@@ -26,6 +28,7 @@ from typing import Iterator, Tuple
 from pyarrow.dataset import Dataset
 from sklearn.compose import ColumnTransformer
 from torch.utils.data import IterableDataset, DataLoader
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 
 
@@ -252,78 +255,82 @@ if __name__ == '__main__':
     patience_counter = 0
     best_epoch = 0
 
+    all_preds_best = []
+    all_labels_best = []
     for epoch in range(NUM_EPOCHS):
-        # === Training ===
-        model.train()
-        train_loss = 0.0
-        train_batches = 0
+      # === Training ===
+      model.train()
+      
+      train_loss = 0.0
+      train_batches = 0
+      for X_batch, y_batch in train_loader:
+        X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
-        for X_batch, y_batch in train_loader:
-            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+        optimizer.zero_grad()
+        outputs = model(X_batch)
+        loss = criterion(outputs, y_batch)
+        loss.backward()
+        optimizer.step()
 
-            optimizer.zero_grad()
-            outputs = model(X_batch)
-            loss = criterion(outputs, y_batch)
-            loss.backward()
-            optimizer.step()
+        train_loss += loss.item()
+        train_batches += 1
 
-            train_loss += loss.item()
-            train_batches += 1
+      avg_train_loss = train_loss / train_batches if train_batches > 0 else 0.0
 
-        avg_train_loss = train_loss / train_batches if train_batches > 0 else 0.0
+      # === Validation ===
+      model.eval()
+      
+      total = 0
+      correct = 0
+      val_loss = 0.0
+      val_batches = 0
+      all_preds = []
+      all_labels = []
+      with torch.no_grad():
+        for X_batch, y_batch in val_loader:
+          X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
-        # === Validation ===
-        model.eval()
-        val_loss = 0.0
-        val_batches = 0
-        correct = 0
-        total = 0
-        all_preds = []
-        all_labels = []
+          outputs = model(X_batch)
+          loss = criterion(outputs, y_batch)
 
-        with torch.no_grad():
-            for X_batch, y_batch in val_loader:
-                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+          val_batches += 1
+          val_loss += loss.item()
 
-                outputs = model(X_batch)
-                loss = criterion(outputs, y_batch)
+          _, predicted = torch.max(outputs, 1)
+          total += y_batch.size(0)
+          correct += (predicted == y_batch).sum().item()
 
-                val_loss += loss.item()
-                val_batches += 1
+          all_preds.extend(predicted.cpu().numpy())
+          all_labels.extend(y_batch.cpu().numpy())
 
-                _, predicted = torch.max(outputs, 1)
-                total += y_batch.size(0)
-                correct += (predicted == y_batch).sum().item()
+      val_accuracy = correct / total if total > 0 else 0.0
+      avg_val_loss = val_loss / val_batches if val_batches > 0 else 0.0
 
-                all_preds.extend(predicted.cpu().numpy())
-                all_labels.extend(y_batch.cpu().numpy())
+      # Log metrics
+      mlflow.log_metrics({
+        "train_loss": avg_train_loss,
+        "val_loss": avg_val_loss,
+        "val_accuracy": val_accuracy,
+      }, step=epoch)
 
-        avg_val_loss = val_loss / val_batches if val_batches > 0 else 0.0
-        val_accuracy = correct / total if total > 0 else 0.0
+      print(f"Epoch {epoch+1:02d}/{NUM_EPOCHS} | "
+        f"Train Loss: {avg_train_loss:.4f} | "
+        f"Val Loss: {avg_val_loss:.4f} | "
+        f"Val Acc: {val_accuracy:.4f}"
+      )
 
-        # Log metrics
-        mlflow.log_metrics({
-            "train_loss": avg_train_loss,
-            "val_loss": avg_val_loss,
-            "val_accuracy": val_accuracy,
-        }, step=epoch)
-
-        print(f"Epoch {epoch+1:02d}/{NUM_EPOCHS} | "
-              f"Train Loss: {avg_train_loss:.4f} | "
-              f"Val Loss: {avg_val_loss:.4f} | "
-              f"Val Acc: {val_accuracy:.4f}")
-
-        # Early stopping
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            best_epoch = epoch
-            patience_counter = 0
-            # Optional: torch.save(model.state_dict(), "best_model.pth")
-        else:
-            patience_counter += 1
-            if patience_counter >= PATIENCE:
-                print(f"Early stopping triggered at epoch {epoch+1}")
-                break
+      # Early stopping
+      if avg_val_loss < best_val_loss:
+          best_val_loss = avg_val_loss
+          best_epoch = epoch
+          patience_counter = 0
+          torch.save(model.state_dict(), "best_model.pth")
+          all_preds_best, all_labels_best = all_preds, all_labels
+      else:
+          patience_counter += 1
+          if patience_counter >= PATIENCE:
+              print(f"Early stopping triggered at epoch {epoch+1}")
+              break
 
     # ========================= FINAL ARTIFACTS =========================
     print("Logging model and artifacts to MLflow...")
@@ -331,8 +338,8 @@ if __name__ == '__main__':
     # Log the trained model
     mlflow.pytorch.log_model(model, "model")
 
-    # Confusion matrix (from last validation pass)
-    cm = confusion_matrix(all_labels, all_preds)
+    # Confusion matrix (from the best validation pass)
+    cm = confusion_matrix(all_labels_best, all_preds_best)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=label_enc.classes_)
     disp.plot(cmap="Blues", xticks_rotation="vertical")
     plt.title("Confusion Matrix")
@@ -341,10 +348,9 @@ if __name__ == '__main__':
     plt.savefig(cm_path)
     mlflow.log_artifact(cm_path)
 
-    # Optional: log preprocessor (as pickle) if you want to reuse it
-    import joblib
+    # log preprocessor (as pickle) if you want to reuse it
     joblib.dump(preprocessor, "preprocessor.pkl")
     mlflow.log_artifact("preprocessor.pkl")
 
-    print(f"✅ Training completed! Run ID: {run.info.run_id}")
-    print(f"   Best validation loss: {best_val_loss:.4f} at epoch {best_epoch+1}")
+    print(f"Training completed! Run ID: {run.info.run_id}")
+    print(f"Best validation loss: {best_val_loss:.4f} at epoch {best_epoch+1}")

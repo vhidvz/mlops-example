@@ -1,14 +1,18 @@
 {
   "cSpell.words": [
+    "cmap",
     "deltalake",
     "dotenv",
     "lakefs",
+    "matplotlib",
     "mlflow",
     "numpy",
+    "preds",
     "pyarrow",
     "pyenv",
     "scikit",
     "treeverse",
-    "venv"
+    "venv",
+    "xticks"
   ]
 }
