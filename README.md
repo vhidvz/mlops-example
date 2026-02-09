@@ -28,3 +28,11 @@ source .venv/bin/activate
 
 pip install --no-cache-dir --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.1.6/constraints-3.12.txt" -r requirements.txt
 ```
+
+## lakeFS
+
+Docker QuickStart
+
+```sh
+docker run --rm -d -p 8000:8000 treeverse/lakefs:1.74.4 run --quickstart
+```

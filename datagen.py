@@ -9,9 +9,6 @@ This script:
 - Writes the data as a Delta Lake table to the same LakeFS path used in the training script.
 - Uses overwrite mode to create/replace the table (creates a new version in LakeFS).
 
-Installation (run once):
-pip install deltalake pandas scikit-learn
-
 Run this script once to populate the table, then run the training script.
 """
 
