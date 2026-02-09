@@ -40,7 +40,7 @@ def load_pytorch_model(path = MODEL_PATH) -> Tuple[nn.Module, torch.device]:
 
 # ========================= GENERATE SAMPLE DATA =========================
 
-def sample_generation(n_samples = 1000) -> pl.DataFrame:
+def sample_generation(n_samples = 1_000) -> pl.DataFrame:
   print("Generating synthetic dataset...")
 
   X, y = make_classification(
