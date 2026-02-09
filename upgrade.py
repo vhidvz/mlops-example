@@ -9,6 +9,7 @@ from mlflow.artifacts import download_artifacts
 
 MLFLOW_METADATA_PATH='./.data/registered_model_meta'
 MLFLOW_EXPERIMENT_NAME = "delta_lake_mlp_training"
+MLFLOW_REGISTERED_MODEL_NAME="MLPClassifier"
 
 
 def mlflow_tracking():
@@ -23,7 +24,8 @@ if __name__ == '__main__':
   mlflow_tracking()
   
   client = MlflowClient()
-  versions = client.search_model_versions("name='MLPClassifier'")
+  versions = client.search_model_versions(
+    f"name='{MLFLOW_REGISTERED_MODEL_NAME}'")
 
   best_val_accuracy = 0
   best_version = versions[0]

@@ -38,6 +38,7 @@ TARGET_COLUMN = "label"
 VAL_SPLIT_MOD = 5 # every 5th PyArrow batch goes to validation (≈20%)
 
 MLFLOW_EXPERIMENT_NAME = "delta_lake_mlp_training"
+MLFLOW_REGISTERED_MODEL_NAME="MLPClassifier"
 
 PATIENCE = 5 # early stopping patience
 NUM_EPOCHS = 20
@@ -367,7 +368,7 @@ if __name__ == '__main__':
       name="model",
       signature=signature,
       input_example=input_example,
-      registered_model_name="MLPClassifier",
+      registered_model_name=MLFLOW_REGISTERED_MODEL_NAME,
     )
 
     # Confusion matrix (from the best validation pass)
