@@ -26,7 +26,7 @@ cp .env.example .env
 python -m venv .venv
 source .venv/bin/activate
 
-pip install -r requirements.txt
+pip install --no-cache-dir --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.1.6/constraints-3.12.txt" -r requirements.txt
 ```
 
 ## lakeFS
