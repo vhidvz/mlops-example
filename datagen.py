@@ -13,12 +13,12 @@ Run this script once to populate the table, then run the training script.
 """
 import os
 import sys
+
 import numpy as np
 import polars as pl
 
-from deltalake import DeltaTable
 from dotenv import load_dotenv
-from deltalake.writer import write_deltalake
+from deltalake import DeltaTable
 from sklearn.datasets import make_classification
 
 
