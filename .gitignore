@@ -1,3 +1,4 @@
+docs/
 mlruns/
 
 best_model.pth

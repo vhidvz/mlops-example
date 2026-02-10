@@ -9,11 +9,13 @@
     "mlflow",
     "mlruns",
     "numpy",
+    "pdoc",
     "preds",
     "pyarrow",
     "pyenv",
     "scikit",
     "treeverse",
+    "uvicorn",
     "venv",
     "xticks"
   ]

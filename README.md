@@ -42,3 +42,11 @@ docker run --rm -d -p 8000:8000 treeverse/lakefs:1.74.4 run --quickstart
 ```sh
 docker compose --env-file docker/config/mlflow.env -f docker/docker-compose.mlf.yml up -d
 ```
+
+# Documentation
+
+To generate the documentation for the python model, execute the following command:
+
+```sh
+PDOC_ALLOW_EXEC=1 pdoc --output-dir docs train.py
+```
