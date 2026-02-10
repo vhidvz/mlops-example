@@ -1,3 +1,7 @@
+base:
+	@echo "Building Base Docker image..."
+	@docker build -f Dockerfile.base -t mlops-example/python:3.12-base .
+
 build:
 	@echo "Building Docker image..."
 	@build_args=""
