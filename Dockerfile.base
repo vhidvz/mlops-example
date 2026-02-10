@@ -1,0 +1,11 @@
+# ####################################################################
+# docker build -f Dockerfile.base -t mlops-example/python:3.12-base .
+# ####################################################################
+FROM python:3.12
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.1.6/constraints-3.12.txt" \
+  -r requirements.txt

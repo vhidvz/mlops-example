@@ -12,7 +12,7 @@
 # sudo apt-get install -y nvidia-container-toolkit
 # sudo nvidia-ctk runtime configure --runtime=docker
 # ####################################################################
-FROM python:3.12
+FROM mlops-example/python:3.12-base
 
 ARG MLFLOW_TRACKING_USERNAME=admin
 ARG MLFLOW_TRACKING_PASSWORD=password1234
@@ -22,8 +22,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --no-cache-dir --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.1.6/constraints-3.12.txt" \
-  -r requirements.txt && python upgrade.py
+RUN python upgrade.py
 
 ENV PORT=3000
 ENV WORKERS=1
