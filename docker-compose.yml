@@ -14,7 +14,7 @@ services:
               capabilities: [gpu]
     environment:
       PORT: 3000
-      WORKERS: 4
+      WORKERS: 1
     env_file:
       - .env
     networks:
