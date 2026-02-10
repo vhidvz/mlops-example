@@ -1,3 +1,4 @@
+import json
 import torch
 import joblib
 import random
@@ -51,6 +52,7 @@ def sample_generation(n_samples = 1_000) -> pl.DataFrame:
     n_repeated=0,
     n_classes=3,
     n_clusters_per_class=2,
+    random_state=RANDOM_SEED
   )
 
   # Create DataFrame with meaningful column names
@@ -122,3 +124,15 @@ if __name__ == '__main__':
     accuracy = correct / total if total > 0 else 0.0
 
     print(f"\nAccuracy on sample dataset: {accuracy:.4f} ({correct}/{total})")
+    
+    # -------------------------------------------------------
+    # Predict for input example
+    # -------------------------------------------------------
+    
+    X_preprocessed = json.load(open('.data/input_example.json', 'r'))
+    X_tensor = torch.tensor(X_preprocessed, dtype=torch.float32).to(device)
+    logits = model(X_tensor)
+    probs = torch.softmax(logits, dim=1)
+    preds = torch.argmax(probs, dim=1)
+    print("\nPrediction:", preds.item())
+    print("Probabilities:", probs[0].tolist())

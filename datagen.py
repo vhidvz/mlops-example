@@ -68,6 +68,7 @@ def sample_generation(n_samples = 10_000) -> pl.DataFrame:
         n_repeated=0,
         n_classes=3,
         n_clusters_per_class=2,
+        random_state=RANDOM_SEED
     )
 
     # Create DataFrame with meaningful column names
