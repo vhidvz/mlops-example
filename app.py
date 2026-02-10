@@ -57,8 +57,6 @@ def load_pytorch_model(path = MODEL_PATH) -> Tuple[nn.Module, torch.device]:
 
   return model, device
 
-preprocessor = load_preprocessor()
-model, device = load_pytorch_model()
 
 class RequestModel(BaseModel):
     features: list
@@ -67,6 +65,10 @@ class RequestModel(BaseModel):
 class ResponseModel(BaseModel):
     prediction: int
     confidence: float
+
+
+preprocessor = load_preprocessor()
+model, device = load_pytorch_model()
 
 
 @app.post("/predict", response_model=ResponseModel)
