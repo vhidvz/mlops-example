@@ -1,3 +1,9 @@
+# Quick Start
+
+```sh
+make base && make build && make deploy
+```
+
 # MLOps Example
 
 Python Version Management
