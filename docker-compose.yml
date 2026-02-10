@@ -5,6 +5,13 @@ services:
     image: mlops-example/python:3.12
     ports:
       - 3000:3000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     environment:
       PORT: 3000
       WORKERS: 4
