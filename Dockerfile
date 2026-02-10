@@ -17,4 +17,4 @@ ENV WORKERS=1
 
 EXPOSE $PORT
 
-CMD ["fastapi", "run", "--workers", "${WORKERS}", "app.py", "--port", "${PORT}"]
+ENTRYPOINT ["./entrypoint.sh"]
