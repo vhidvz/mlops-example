@@ -6,6 +6,7 @@
     "dotenv",
     "fastapi",
     "lakefs",
+    "localnet",
     "matplotlib",
     "mlflow",
     "mlops",

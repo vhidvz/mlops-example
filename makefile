@@ -12,3 +12,7 @@ build:
 		echo "Build args passed: $$build_args"; \
 	fi; \
 	docker build $$build_args -t mlops-example/python:3.12 .
+
+deploy:
+	@echo "Starting services with Docker Compose (detached mode)..."
+	@docker compose up -d
